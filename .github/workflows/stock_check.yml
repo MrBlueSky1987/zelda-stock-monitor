@@ -13,6 +13,14 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Restore stock state
+        uses: actions/cache/restore@v4
+        with:
+          path: stock_state.json
+          key: stock-state-${{ github.run_id }}
+          restore-keys: |
+            stock-state-
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -26,3 +34,9 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_IDS: ${{ secrets.TELEGRAM_CHAT_IDS }}
         run: python3 stock_check.py
+
+      - name: Save stock state
+        uses: actions/cache/save@v4
+        with:
+          path: stock_state.json
+          key: stock-state-${{ github.run_id }}
