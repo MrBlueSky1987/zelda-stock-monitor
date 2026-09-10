@@ -21,10 +21,13 @@ def check_leclerc():
             "text/html,application/xhtml+xml,application/xml;"
             "q=0.9,image/avif,image/webp,*/*;q=0.8"
         ),
-        "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8"
+        "Accept-Language": (
+            "fr-FR,fr;q=0.9,en;q=0.8"
+        )
     }
 
     try:
+
         response = requests.get(
             PRODUCT_URL,
             headers=headers,
@@ -32,14 +35,21 @@ def check_leclerc():
         )
 
     except requests.RequestException as e:
-        print("E.Leclerc request failed:", e)
+
+        print(
+            "E.Leclerc request failed:",
+            e
+        )
+
         return None
 
     if response.status_code != 200:
+
         print(
             "E.Leclerc request failed "
             f"(HTTP {response.status_code})."
         )
+
         return None
 
     text = response.content.decode(
@@ -47,24 +57,43 @@ def check_leclerc():
         errors="ignore"
     ).lower()
 
-    marker = "disabled-text-light"
+    # --------------------------------------------------------
+    # Availability phrases
+    #
+    # We deliberately look for the exact product-status
+    # phrases rather than relying on a particular CSS class.
+    # --------------------------------------------------------
 
-    position = text.rfind(marker)
+    unavailable_phrase = (
+        "précommande épuisée"
+    )
 
-    if position == -1:
+    available_phrase = (
+        "en précommande"
+    )
+
+    # --------------------------------------------------------
+    # The product page currently contains both the general
+    # "En précommande" wording and the more specific
+    # "Précommande épuisée" status.
+    #
+    # Therefore unavailable must be checked first.
+    # --------------------------------------------------------
+
+    if unavailable_phrase in text:
+
         print(
-            "E.Leclerc: Availability section not found."
+            "E.Leclerc: UNAVAILABLE"
         )
-        return None
 
-    section = text[position - 500:position + 1500]
-
-    if "précommande épuisée" in section:
-        print("E.Leclerc: UNAVAILABLE")
         return False
 
-    if "en précommande" in section:
-        print("E.Leclerc: AVAILABLE")
+    if available_phrase in text:
+
+        print(
+            "E.Leclerc: AVAILABLE"
+        )
+
         return True
 
     print(
@@ -79,4 +108,7 @@ if __name__ == "__main__":
     result = check_leclerc()
 
     print()
-    print("RESULT:", result)
+    print(
+        "RESULT:",
+        result
+    )
